@@ -45,6 +45,9 @@ class ViewModelHomePage: ObservableObject {
         
         do {
             try eventStore.save(event, span: .thisEvent)
+            let localEvent = ModelLocalEvent(title: title, startDate: startDate, endDate: endDate)
+            LocalEventStorage().save(event: localEvent)
+            
             openCalendar(at: startDate)
         } catch {
             print("Error saving event: \(error.localizedDescription)")
