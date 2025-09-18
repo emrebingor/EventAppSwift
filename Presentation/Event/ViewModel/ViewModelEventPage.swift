@@ -7,12 +7,39 @@
 
 import Foundation
 import EventKit
+import Combine
 import UIKit
 
 class ViewModelEventPage: ObservableObject {
     @Published var events: [ModelLocalEvent] = []
     private let storage = LocalEventStorage()
     private let eventStore = EKEventStore()
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        events = storage.loadEvents()
+        
+        NotificationCenter.default
+            .publisher(for: .EKEventStoreChanged, object: eventStore)
+            .sink { [weak self] _ in
+                self?.eventStoreChanged()
+            }
+            .store(in: &cancellables)
+    }
+    
+    func eventStoreChanged() {
+        DispatchQueue.main.async {
+            let updatedEvents = self.storage.loadEvents().filter { event in
+                guard let id = event.eventId else { return true }
+                return self.eventStore.event(withIdentifier: id) != nil
+            }
+            
+            self.storage.clear()
+            updatedEvents.forEach { self.storage.save(event: $0) }
+            
+            self.events = updatedEvents
+        }
+    }
     
     func getEvents() {
         events = storage.loadEvents()

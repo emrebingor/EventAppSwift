@@ -40,4 +40,8 @@ class LocalEventStorage {
             print("Encoding failed")
         }
     }
+    
+    func clear() {
+        UserDefaults.standard.removeObject(forKey: key)
+    }
 }
