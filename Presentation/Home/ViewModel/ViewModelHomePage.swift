@@ -18,7 +18,6 @@ class ViewModelHomePage: ObservableObject {
     @Published var alertTitle = ""
     @Published var alertMessage = ""
     
-    
     @MainActor
     func requestCalendarAccess() {
         let eventStore = EKEventStore()
@@ -37,6 +36,12 @@ class ViewModelHomePage: ObservableObject {
     }
     
     func addEvent() {
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTitle.isEmpty else {
+            print("Title is empty")
+            return
+        }
+        
         let event = EKEvent(eventStore: eventStore)
         event.title = title
         event.startDate = startDate
@@ -45,7 +50,8 @@ class ViewModelHomePage: ObservableObject {
         
         do {
             try eventStore.save(event, span: .thisEvent)
-            let localEvent = ModelLocalEvent(title: title, startDate: startDate, endDate: endDate)
+            var localEvent = ModelLocalEvent(title: title, startDate: startDate, endDate: endDate)
+            localEvent.eventId = event.eventIdentifier
             LocalEventStorage().save(event: localEvent)
             
             openCalendar(at: startDate)

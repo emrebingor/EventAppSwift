@@ -28,7 +28,16 @@ class LocalEventStorage {
         }
     }
     
-    func clear() {
-        UserDefaults.standard.removeObject(forKey: key)
+    func delete(at index: Int) {
+        var events = loadEvents()
+        guard events.indices.contains(index) else { return }
+        events.remove(at: index)
+        
+        do {
+            let data = try JSONEncoder().encode(events)
+            UserDefaults.standard.set(data, forKey: key)
+        } catch {
+            print("Encoding failed")
+        }
     }
 }

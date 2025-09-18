@@ -6,12 +6,13 @@
 //
 
 import SwiftUI
+import EventKitUI
 
 struct EventView: View {
     @StateObject var viewModel = ViewModelEventPage()
     
     var body: some View {
-        ScrollView {
+        List {
             ForEach(viewModel.events) { event in
                 VStack(alignment: .leading, spacing: 8) {
                     Text(event.title)
@@ -20,27 +21,32 @@ struct EventView: View {
                     Text("Start Date: " + event.startDate.formatDateToString())
                         .font(.subheadline)
                         .foregroundColor(.secondary)
+                    
                     Text("End Date: " + event.endDate.formatDateToString())
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                 }
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.white)
-                .cornerRadius(12)
-                .shadow(color: .black.opacity(0.15), radius: 8, x: 2, y: 2)
-                .padding(.horizontal)
+                .padding(.vertical, 4)
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button(role: .destructive) {
+                        if let index = viewModel.events.firstIndex(where: { $0.id == event.id }) {
+                            viewModel.deleteEvent(at: IndexSet(integer: index))
+                        }
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                    
+                    Button {
+                        viewModel.openCalendar(at: event.startDate)
+                    } label: {
+                        Label("Calendar", systemImage: "calendar")
+                    }
+                    .tint(.blue)
+                }
             }
-            .padding(.vertical)
         }
         .onAppear {
             viewModel.getEvents()
         }
     }
-}
-
-
-
-#Preview {
-    EventView()
 }
